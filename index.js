@@ -14,7 +14,7 @@ const port = process.env.PORT
 app.use(express.json())
 app.use(cookieparser())
 app.use(cors({
-  origin: "https://munchez-ochre.vercel.app/",
+  origin: "https://munchez-ochre.vercel.app",
   credentials: true
 }));
 
