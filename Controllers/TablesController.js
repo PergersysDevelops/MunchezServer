@@ -150,6 +150,7 @@ export const getAllTables = async (req, res) => {
       count: tables.length,
       data: tables,
     });
+    console.log(tables)
   } catch (error) {
     console.error("Get Tables Error:", error);
 
