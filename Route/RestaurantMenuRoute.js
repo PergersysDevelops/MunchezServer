@@ -5,7 +5,7 @@ import {
   getRestaurantMenu,
   toggleMenuStock,
   updateMenuItem,
-} from "../controllers/RestaurantMenuController.js";
+} from "../Controllers/RestaurantMenuController.js";
 import { authenticateRestaurant, checkRole } from "../Middleware/auth.js";
 import { uploadMenuStorage } from "../Middleware/UploadFile.js";
 
