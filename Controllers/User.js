@@ -61,56 +61,108 @@ export const signUpRestaurant = async(req , res)=>{
 
     }
 }
-export const loginRestaurant = async(req , res)=>{
+export const loginRestaurant = async (req, res) => {
+  try {
+    const { phone, password } = req.body;
+
+    const restaurant = await restaurantModel.findOne({ phone });
+
+    if (!restaurant) {
+      return res.json({
+        success: false,
+        message: "invalid credentials",
+      });
+    }
+
+    const passwordMatch = await restaurant.comparePassword(password);
+
+    if (!passwordMatch) {
+      return res.json({
+        success: false,
+        message: "invalid credentials",
+      });
+    }
+
+    const refreshToken = generateRefreshToken(restaurant._id);
+
+    const accessToken = generateAccessToken(restaurant._id);
+
+    await redis.set(
+      `refreshtoken${restaurant._id}`,
+      refreshToken,
+      "EX",
+      7 * 24 * 60 * 60
+    );
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
+      path: "/",
+    });
+
+    const userData = restaurant.toObject();
+
+    delete userData.password;
+
+    console.log("Cookies set");
+
+    return res.status(200).json({
+      success: true,
+      user: userData,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+
+export const refreshToken = async(req,res)=>{
     try{
-        const { phone, password} = req.body
+        const storedRefreshToken = req.cookies?.refreshToken
 
-        const restaurant = await restaurantModel.findOne({phone})
-
-        if(!restaurant){
-            return res.json({success:false, message:"invalid credentials"})
+        if(!storedRefreshToken){
+            return res.json({success:false,message:"No token provided"})
         }
+        const decoded = jwt.verify(storedRefreshToken,process.env.REFRESH_TOKEN_SECRET)
 
-        const passwordMatch = await restaurant.comparePassword(password)
+        const redisRefreshToken = await redis.get(`refreshToken${decoded.id}`)
 
-         if(!passwordMatch){
-            return res.json({success:false, message:"invalid credentials"})
+        if(storedRefreshToken!=redisRefreshToken){
+            return res.json({message:"Invalid refresh token"})
         }
+        
+        const accessToken = generateAccessToken(decoded.id)
 
+        res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+        });
 
-        const refreshToken = generateRefreshToken(restaurant._id)
+        return res.json({message:"Token refreshed successfully"})
 
-        const accessToken = generateAccessToken(restaurant._id)
-
-        redis.set(`refreshtoken${restaurant._id}`, refreshToken, "EX", 7*24*60*60)
-
-        res.cookie("accessToken",accessToken,{
-            httpOnly:true,
-            secure: process.env.NODE_ENV=="production",
-            maxAge: 7*24*60*60*1000,
-            sameSite:"strict"
-            
-        })
-        res.cookie("refreshToken",refreshToken,{
-            httpOnly:true,
-            secure: process.env.NODE_ENV=="production",
-            maxAge: 15*60*1000,
-            sameSite:"strict"
-            
-        })
-
-        delete restaurant.password
-
-
-
-        return res.json({success:true, user:restaurant})
 
 
 
 
     }catch(error){
-        console.log(error)
-        return res.json({success:false, error: error.message})
-
+        res.json({success:false, message:"Error in refreshing access token", error: error.message})
     }
 }

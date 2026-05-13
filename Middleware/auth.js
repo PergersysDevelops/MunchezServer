@@ -8,48 +8,59 @@ export const authenticateRestaurant = async (req, res, next) => {
     const { accessToken, refreshToken } = req.cookies;
 
     if (!accessToken) {
-        
-        return res.json({succcess:false,message:"No tokens provided"})
+      return res.json({
+        success: false,
+        message: "No tokens provided",
+      });
     }
-         
-        
+
     try {
+      const decoded = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET
+      );
 
-        const decoded = jwt.verify(
-          accessToken,
-          process.env.ACCESS_TOKEN_SECRET
-        );
+      const user = await restaurantModel
+        .findById(decoded.id)
+        .select("-password");
 
-        const user = await restaurantModel.findById(decoded.id).select("-pasword")
-
-        if(!user){
-            return res.json({success:false, message:"User not existing"})
-        }
-
-        req.user = user;
-        
-        next();
-        
-
-
-       
-      } catch (err) {
-        // access token invalid/expired
-        if(error.name == "TokenExpiredError"){
-            return res.json({success:false , message:"Token Expired"})
-        }
+      if (!user) {
+        return res.json({
+          success: false,
+          message: "User not existing",
+        });
       }
+
+      req.user = user;
+
+      next();
+    } catch (err) {
+      // access token invalid/expired
+      if (err.name === "TokenExpiredError") {
+        console.log(err)
+        return res.json({
+          success: false,
+          message: "Token Expired",
+        });
+      }
+
+      return res.json({
+        success: false,
+        message: "Invalid access token",
+      });
     }
+  } catch (error) {
+    console.log(error);
 
-   
-  catch (error) {
-   console.log(error)
-   return res.json({success:false, message:"Unaithorsed, invalid accesstoken"})
-}
-}
+    return res.json({
+      success: false,
+      message: "Unauthorised, invalid accesstoken",
+    });
+  }
+};
 
 
-export const checkRole = async(req,res)=>{
+export const checkRole = async(req,res,next)=>{
     try{
         if(req.user.role=="admin" || req.user.role=="manager"){
             next()
