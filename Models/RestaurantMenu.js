@@ -10,6 +10,10 @@ const addonSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  default:{
+    type:Boolean,
+    default:true
+  }
 });
 
 const menuItemSchema = new mongoose.Schema(

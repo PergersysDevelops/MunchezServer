@@ -20,12 +20,12 @@ export const createMenuItem = async (req, res) => {
       restaurantId,
       name,
       description,
-      image,
+      image: req.file ? req.file.path : null,
       price,
       currency,
-      categories,
+      categories: JSON.parse(categories),
       outOfStock,
-      addons,
+      addons: JSON.parse(addons),
     });
 
     console.log(`image ${req.file}`)

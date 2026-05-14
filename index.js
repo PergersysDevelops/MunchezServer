@@ -2,6 +2,7 @@ import express from "express"
 import dotenv from "dotenv"
 import { connectDb } from "./Configs/DbConfig.js"
 import { authRoute } from "./Route/authRoute.js"
+import { paymentRoute } from "./Route/PaymentRoute.js"
 import { tableRouter } from "./Route/TableRoute.js"
 import cookieparser from "cookie-parser"
 import cors from "cors"
@@ -29,4 +30,5 @@ app.listen(port, ()=>{
 app.use("/api/v1", authRoute)
 app.use("/api/v1", tableRouter)
 app.use("/api/v1",MenuRouter)
+app.use("/api/v1",paymentRoute)
 
