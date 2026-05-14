@@ -1,36 +1,23 @@
-import mongoose , {Schema} from "mongoose"
+import mongoose from "mongoose";
 
-const MenuAddonSchema = new mongoose.Schema(
-  {
-    id: {
-      type: String,
-      required: true,
-    },
-
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
+const addonSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
   },
-  {
-    _id: false,
-  },
-);
 
-const RestaurantMenuSchema = new mongoose.Schema(
+  price: {
+    type: Number,
+    default: 0,
+  },
+});
+
+const menuItemSchema = new mongoose.Schema(
   {
-    restaurantOwnerId: {
-      type: Schema.Types.ObjectId,
-      ref:"restaurants",
+    restaurantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "restaurants",
       required: true,
-      index: true,
     },
 
     name: {
@@ -44,44 +31,40 @@ const RestaurantMenuSchema = new mongoose.Schema(
       default: "",
     },
 
-    imageDataUrl: {
+    image: {
       type: String,
       default: "",
     },
 
-    cost: {
+    price: {
       type: Number,
       required: true,
-      min: 0,
     },
 
     currency: {
       type: String,
       default: "USD",
-      uppercase: true,
     },
+
+    categories: [
+      {
+        type: String,
+      },
+    ],
 
     outOfStock: {
       type: Boolean,
       default: false,
     },
 
-    categories: {
-      type: [String],
-      default: [],
-    },
-
-    addons: {
-      type: [MenuAddonSchema],
-      default: [],
-    },
+    addons: [addonSchema],
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const RestaurantMenuModel = mongoose.model(
-  "RestaurantMenu",
-  RestaurantMenuSchema,
+  "menuitems",
+  menuItemSchema
 );

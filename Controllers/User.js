@@ -33,16 +33,18 @@ export const signUpRestaurant = async(req , res)=>{
 
         res.cookie("accessToken",accessToken,{
             httpOnly:true,
-            secure: process.env.NODE_ENV,
+            secure: process.env.NODE_ENV=="production",
             maxAge: 7*24*60*60*1000,
-            sameSite:"strict"
+            sameSite:"none",
+            path:"/"
             
         })
         res.cookie("refreshToken",refreshToken,{
             httpOnly:true,
-            secure: process.env.NODE_ENV,
+            secure: process.env.NODE_ENV== "production",
             maxAge: 15*60*1000,
-            sameSite:"strict"
+            sameSite:"none",
+            path:"/"
             
         })
 
@@ -98,7 +100,7 @@ export const loginRestaurant = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 15*60 * 1000,
       path: "/",
     });
 
@@ -106,7 +108,7 @@ export const loginRestaurant = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
-      maxAge: 15 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60* 1000,
       path: "/",
     });
 
@@ -121,7 +123,7 @@ export const loginRestaurant = async (req, res) => {
       user: userData,
     });
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
 
     return res.json({
       success: false,
@@ -152,9 +154,11 @@ export const refreshToken = async(req,res)=>{
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 15 * 60 * 1000,
         path: "/",
         });
+
+        console.log("Token refreshed successfully")
 
         return res.json({message:"Token refreshed successfully"})
 

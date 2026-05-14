@@ -5,6 +5,7 @@ import {
   getRestaurantMenu,
   toggleMenuStock,
   updateMenuItem,
+  getPublicRestaurantMenu
 } from "../Controllers/RestaurantMenuController.js";
 import { authenticateRestaurant, checkRole } from "../Middleware/auth.js";
 import { uploadMenuStorage } from "../Middleware/UploadFile.js";
@@ -12,7 +13,7 @@ import { uploadMenuStorage } from "../Middleware/UploadFile.js";
 const MenuRouter = express.Router();
 
 MenuRouter.post(
-  "/add-item",
+  "/restaurant/menu/create",
   authenticateRestaurant,
   checkRole,
   uploadMenuStorage.single("image"),
@@ -20,28 +21,32 @@ MenuRouter.post(
 );
 
 MenuRouter.get(
-  "/all-menu",
+  "/restaurant/menu/all",
   authenticateRestaurant,
   checkRole,
   getRestaurantMenu,
 );
+MenuRouter.get(
+  "/restaurant/public/menu/all/:id",
+  getPublicRestaurantMenu,
+);
 
 MenuRouter.put(
-  "/update-item/:id",
+  "/restaurant/menu/update/:id",
   authenticateRestaurant,
   checkRole,
   updateMenuItem,
 );
 
 MenuRouter.patch(
-  "/:id/toggle-stock",
+  "/restaurant/menu/stock/:id",
   authenticateRestaurant,
   checkRole,
   toggleMenuStock,
 );
 
 MenuRouter.delete(
-  "/delete-item/:id",
+  "/restaurant/menu/delete/:id",
   authenticateRestaurant,
   checkRole,
   deleteMenuItem,

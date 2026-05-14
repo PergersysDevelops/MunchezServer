@@ -7,6 +7,8 @@ export const authenticateRestaurant = async (req, res, next) => {
   try {
     const { accessToken, refreshToken } = req.cookies;
 
+    console.log(accessToken)
+
     if (!accessToken) {
       return res.json({
         success: false,
