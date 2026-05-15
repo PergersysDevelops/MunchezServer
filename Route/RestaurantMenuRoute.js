@@ -35,6 +35,7 @@ MenuRouter.put(
   "/restaurant/menu/update/:id",
   authenticateRestaurant,
   checkRole,
+  uploadMenuStorage.single("image"),
   updateMenuItem,
 );
 

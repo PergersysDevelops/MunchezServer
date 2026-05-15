@@ -8,14 +8,14 @@ dotenv.config()
 
 export const initializePayment = async (req, res) => {
   try {
-    const { amount , orderData, restaurantId,table } = req.body;
+    const { amount , orderData} = req.body;
 
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
         email: "super.admin@pergersys.com",
         amount: amount, // convert to pesewas 
-        callback_url: `${process.env.FRONTEND_BASE_URL}/m/${restaurantId}/table/${table}`,
+        callback_url: `${process.env.FRONTEND_LOCALHOST_URL}/m/${orderData.restaurantOwnerId}/table/${orderData.tableNumber}/verify-payment`,
         metadata: orderData, // attach order info
       },
       {
@@ -36,13 +36,14 @@ export const initializePayment = async (req, res) => {
 }
 
 
+
+
 export const verifyPayment = async (req, res) => {
   const { reference } = req.params;
 
-  
   try {
     const response = await axios.get(
-      `${process.env.FRONTEND_BASE_URL}/verify/${reference}`,
+      `https://api.paystack.co/transaction/verify/${reference}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
@@ -50,22 +51,93 @@ export const verifyPayment = async (req, res) => {
       }
     );
 
-    const data = response.data.data;
-    // console.log(response)
-    if (data.status === "success") {
-      const newOrder = new orderModel({...JSON.parse(req.params.orderData), paid:"paid"})
+    const paymentData = response?.data?.data;
 
-      newOrder.save()
-      io.emit("new_order", newOrder);
-      
-      return res.json({success:true, data})
+    console.log(paymentData);
 
-    } else {
-      res.json({ success: false });
+    // payment not successful
+    if (!paymentData || paymentData.status !== "success") {
+      return res.status(400).json({
+        success: false,
+        message: "Payment verification failed",
+      });
     }
+
+    // metadata sent during initialize payment
+    const metadata = paymentData.metadata || {};
+
+    // orderData from metadata
+    const orderData = metadata;
+
+    if (!orderData) {
+      return res.status(400).json({
+        success: false,
+        message: "Order data missing from metadata",
+      });
+    }
+
+    // prevent duplicate orders
+    const existingOrder = await orderModel.findOne({
+      paymentReference: reference,
+    });
+
+    if (existingOrder) {
+      return res.status(200).json({
+        success: true,
+        message: "Payment already verified",
+        order: existingOrder,
+      });
+    }
+
+    // create order
+    const createdOrder = await orderModel.create({
+      restaurantId: orderData.restaurantOwnerId,
+
+      tableNumber: orderData.tableNumber,
+
+      customerName: orderData.customerName,
+
+      paymentMethod: orderData.paymentMethod,
+
+      paymentStatus: "paid",
+
+      paymentReference: reference,
+
+      orderData: {
+        lineItems: orderData.lineItems.map((item) => ({
+          menuItemId: item.menuItemId,
+
+          name: item.name,
+
+          quantity: item.quantity,
+
+          unitPrice: item.unitPrice,
+
+          addons: (item.addons || []).map((addon) => ({
+            addonId: addon.addonId,
+            name: addon.name,
+            price: addon.price,
+          })),
+        })),
+      },
+
+      total: orderData.total,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment verified successfully",
+      order: createdOrder,
+    });
   } catch (error) {
-    console.error(error.response?.data || error.message);
-    res.status(500).json({ error: "Verification failed" });
+    console.error(
+      error?.response?.data || error.message
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Verification failed",
+    });
   }
 };
 
@@ -162,4 +234,79 @@ export const createRestaurantSplit= async(req,res)=> {
   console.log("Split created:", response.data.data.split_code);
   return res.json({success:true, splitCode: response.data.data.split_code});
 }
+
+
+
+
+export const payWithCash = async (req, res) => {
+  try {
+    const {
+      restaurantOwnerId,
+      tableNumber,
+      paymentMethod,
+      customerName,
+      lineItems,
+      total,
+    } = req.body;
+
+    // basic validation
+    if (!restaurantOwnerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Restaurant ID is required",
+      });
+    }
+
+    if (!tableNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Table number is required",
+      });
+    }
+
+    if (!customerName) {
+      return res.status(400).json({
+        success: false,
+        message: "Customer name is required",
+      });
+    }
+
+    if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Order items are required",
+      });
+    }
+
+    const newOrder = await orderModel.create({
+      restaurantId: restaurantOwnerId,
+      table: tableNumber,
+      paymentMethod: "cash",
+      paymentStatus: "pending",
+      paymentReference:"NA",
+      customerName,
+
+      orderData: {
+        
+        lineItems,
+        
+      },
+      total
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Cash order placed successfully",
+      data: newOrder,
+    });
+  } catch (error) {
+    console.error("PAY WITH CASH ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to place cash order",
+      error: error.message,
+    });
+  }
+};
 

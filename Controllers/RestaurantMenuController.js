@@ -87,25 +87,75 @@ export const getPublicRestaurantMenu = async (req, res) => {
   }
 };
 
-export const updateMenuItem = async (req, res) => {
+export const updateMenuItem = async (
+  req,
+  res
+) => {
   try {
     const { id } = req.params;
 
-    const updated = await RestaurantMenuModel.findOneAndUpdate(
-      {
-        _id: id,
-        restaurantId: req.user._id,
-      },
-      req.body,
-      {
-        new: true,
-      }
-    );
+    const updateData = {
+      ...req.body,
+    };
+
+    // image from middleware
+    if (req.file) {
+      updateData.image =
+        req.file.path ||
+        req.file.secure_url ||
+        req.file.url;
+    }
+
+    // parse categories
+    if (req.body.categories) {
+      updateData.categories =
+        JSON.parse(
+          req.body.categories
+        );
+    }
+
+    // parse addons
+    if (req.body.addons) {
+      updateData.addons =
+        JSON.parse(req.body.addons);
+    }
+
+    // convert boolean string
+    if (
+      req.body.outOfStock !==
+      undefined
+    ) {
+      updateData.outOfStock =
+        req.body.outOfStock ===
+        "true";
+    }
+
+    // convert number string
+    if (req.body.price !== undefined) {
+      updateData.price = Number(
+        req.body.price
+      );
+    }
+
+    const updated =
+      await RestaurantMenuModel.findOneAndUpdate(
+        {
+          _id: id,
+          restaurantId:
+            req.user._id,
+        },
+        updateData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
 
     if (!updated) {
       return res.status(404).json({
         success: false,
-        message: "Menu item not found",
+        message:
+          "Menu item not found",
       });
     }
 
