@@ -15,7 +15,7 @@ export const initializePayment = async (req, res) => {
       {
         email: "super.admin@pergersys.com",
         amount: amount, // convert to pesewas 
-        callback_url: `${process.env.FRONTEND_LOCALHOST_URL}/m/${orderData.restaurantOwnerId}/table/${orderData.tableNumber}/verify-payment`,
+        callback_url: `${process.env.FRONTEND_BASE_URL}/m/${orderData.restaurantOwnerId}/table/${orderData.tableNumber}/verify-payment`,
         metadata: orderData, // attach order info
       },
       {
