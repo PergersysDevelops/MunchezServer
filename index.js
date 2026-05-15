@@ -4,6 +4,7 @@ import { connectDb } from "./Configs/DbConfig.js"
 import { authRoute } from "./Route/authRoute.js"
 import { paymentRoute } from "./Route/PaymentRoute.js"
 import { tableRouter } from "./Route/TableRoute.js"
+import { orderRoute } from "./Route/OrderRoute.js"
 import cookieparser from "cookie-parser"
 import cors from "cors"
 import MenuRouter from "./Route/RestaurantMenuRoute.js"
@@ -31,4 +32,5 @@ app.use("/api/v1", authRoute)
 app.use("/api/v1", tableRouter)
 app.use("/api/v1",MenuRouter)
 app.use("/api/v1",paymentRoute)
+app.use("/api/v1",orderRoute)
 
