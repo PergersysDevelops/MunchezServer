@@ -1,4 +1,4 @@
-import CustomizationModel from "../models/CustomizationModel.js";
+import CustomizationModel from "../Models/CustomizationModel.js";
 import { restaurantModel } from "../Models/Restaurants.js";
 import jwt from "jsonwebtoken"
 import { generateAccessToken } from "../Utils/GenerateAccessToken.js";
