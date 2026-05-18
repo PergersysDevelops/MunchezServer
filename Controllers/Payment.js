@@ -2,6 +2,9 @@
 import axios from "axios";
 import dotenv from "dotenv"
 import { orderModel } from "../Models/Order.js";
+
+import { restaurantModel } from "../Models/Restaurants.js";
+
 // import { io } from "../server.js";
 
 dotenv.config()
@@ -9,6 +12,8 @@ dotenv.config()
 export const initializePayment = async (req, res) => {
   try {
     const { amount , orderData} = req.body;
+
+    console.log(orderData)
 
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
@@ -53,7 +58,7 @@ export const verifyPayment = async (req, res) => {
 
     const paymentData = response?.data?.data;
 
-    console.log(paymentData);
+    // console.log(paymentData);
 
     // payment not successful
     if (!paymentData || paymentData.status !== "success") {
@@ -89,11 +94,17 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
+    const restaurant = await restaurantModel.findById(orderData.restaurantOwnerId)
+
+
+    console.log(`orderData ${orderData.tableNumber}`)
+   
+
     // create order
     const createdOrder = await orderModel.create({
       restaurantId: orderData.restaurantOwnerId,
 
-      tableNumber: orderData.tableNumber,
+      table: orderData.tableNumber,
 
       customerName: orderData.customerName,
 
@@ -124,10 +135,12 @@ export const verifyPayment = async (req, res) => {
       total: orderData.total,
     });
 
+    console.log(createdOrder)
+
     return res.status(200).json({
       success: true,
       message: "Payment verified successfully",
-      order: createdOrder,
+      order: {...createdOrder, restaurantName: restaurant._doc.businessName},
     });
   } catch (error) {
     console.error(

@@ -30,11 +30,11 @@ const tenantSchema = new mongoose.Schema({
   },
 
   address: {
-    type:"String",
+    type:String,
     default:""
   },
   role:{
-    type:"String",
+    type: String,
     enum:["admin","manager"]
   }
 
