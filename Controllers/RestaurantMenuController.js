@@ -1,5 +1,6 @@
 import { RestaurantMenuModel } from "../Models/RestaurantMenu.js";
 import cloudinary  from "../Configs/CloudinaryConfig.js";
+import CustomizationModel from "../Models/CustomizationModel.js";
 
 export const createMenuItem = async (req, res) => {
   try {
@@ -14,7 +15,10 @@ export const createMenuItem = async (req, res) => {
       categories,
       outOfStock,
       addons,
+      currencySymbol
     } = req.body;
+
+    console.log(currencySymbol)
 
     const menuItem = await RestaurantMenuModel.create({
       restaurantId,
@@ -28,7 +32,26 @@ export const createMenuItem = async (req, res) => {
       addons: JSON.parse(addons),
     });
 
-    console.log(`image ${req.file}`)
+    const restaurantCustomization = await CustomizationModel.findOne({user: restaurantId})
+
+    if(!restaurantCustomization){
+      await CustomizationModel.create({
+          user: restaurantId,
+          primaryColor: "",
+          secondaryColor:"",
+          motto: "",
+          currency:currencySymbol,
+          logo:""
+        });
+    }
+    else{
+
+      const updateCustomization = await CustomizationModel.findByIdAndUpdate(restaurantCustomization._id,{curency:currencySymbol}, {new:true})
+      console.log()
+
+    }
+
+    // console.log(`image ${req.file}`)
 
     return res.status(201).json({
       success: true,

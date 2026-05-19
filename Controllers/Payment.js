@@ -4,6 +4,7 @@ import dotenv from "dotenv"
 import { orderModel } from "../Models/Order.js";
 
 import { restaurantModel } from "../Models/Restaurants.js";
+import { io } from "../index.js";
 
 // import { io } from "../server.js";
 
@@ -132,8 +133,20 @@ export const verifyPayment = async (req, res) => {
         })),
       },
 
+
+    
       total: orderData.total,
     });
+
+      io.to(orderData.restaurantOwnerId).emit(
+        "newOrder",
+        {
+          ...createdOrder.toObject(),
+          restaurantName:
+            restaurant?.businessName || "",
+        }
+      );
+
 
     console.log(createdOrder)
 
@@ -251,7 +264,10 @@ export const createRestaurantSplit= async(req,res)=> {
 
 
 
-export const payWithCash = async (req, res) => {
+export const payWithCash = async (
+  req,
+  res
+) => {
   try {
     const {
       restaurantOwnerId,
@@ -262,62 +278,111 @@ export const payWithCash = async (req, res) => {
       total,
     } = req.body;
 
-    // basic validation
+    // validation
     if (!restaurantOwnerId) {
       return res.status(400).json({
         success: false,
-        message: "Restaurant ID is required",
+        message:
+          "Restaurant ID is required",
       });
     }
 
     if (!tableNumber) {
       return res.status(400).json({
         success: false,
-        message: "Table number is required",
+        message:
+          "Table number is required",
       });
     }
 
     if (!customerName) {
       return res.status(400).json({
         success: false,
-        message: "Customer name is required",
+        message:
+          "Customer name is required",
       });
     }
 
-    if (!lineItems || !Array.isArray(lineItems) || lineItems.length === 0) {
+    if (
+      !lineItems ||
+      !Array.isArray(lineItems) ||
+      lineItems.length === 0
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Order items are required",
+        message:
+          "Order items are required",
       });
     }
 
-    const newOrder = await orderModel.create({
-      restaurantId: restaurantOwnerId,
-      table: tableNumber,
-      paymentMethod: "cash",
-      paymentStatus: "pending",
-      paymentReference:"NA",
-      customerName,
+    // get restaurant
+    const restaurant =
+      await restaurantModel.findById(
+        restaurantOwnerId
+      );
 
-      orderData: {
-        
-        lineItems,
-        
-      },
-      total
-    });
+    // create order
+    const newOrder =
+      await orderModel.create({
+        restaurantId:
+          restaurantOwnerId,
+
+        table: tableNumber,
+
+        paymentMethod:
+          paymentMethod || "cash",
+
+        paymentStatus: "pending",
+
+        paymentReference: "NA",
+
+        customerName,
+
+        orderData: {
+          lineItems,
+        },
+
+        total,
+      });
+
+    // REALTIME SOCKET EMIT
+    io.to(restaurantOwnerId).emit(
+      "newOrder",
+      {
+        ...newOrder.toObject(),
+
+        restaurantName:
+          restaurant?.businessName ||
+          "",
+      }
+    );
 
     return res.status(201).json({
       success: true,
-      message: "Cash order placed successfully",
-      data: newOrder,
+
+      message:
+        "Cash order placed successfully",
+
+      data: {
+        ...newOrder.toObject(),
+
+        restaurantName:
+          restaurant?.businessName ||
+          "",
+      },
     });
   } catch (error) {
-    console.error("PAY WITH CASH ERROR:", error);
+    console.error(
+      "PAY WITH CASH ERROR:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
-      message: "Failed to place cash order",
+
+      message:
+        "Failed to place cash order",
+
       error: error.message,
     });
   }
