@@ -22,7 +22,8 @@ const server = http.createServer(app);
 
 export const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_LOCALHOST_URL,
+    
+    origin: process.env.FRONTEND_BASE_URL,
     credentials: true,
   },
 });
