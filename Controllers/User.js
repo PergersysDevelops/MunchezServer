@@ -117,12 +117,27 @@ export const loginRestaurant = async (req, res) => {
 
     delete userData.password;
 
-    console.log("Cookies set");
+    const customization = await CustomizationModel.findOne({user: restaurant._id})
+    
+    if(customization){
 
-    return res.status(200).json({
-      success: true,
-      user: userData,
-    });
+      console.log("Cookies set");
+  
+      return res.status(200).json({
+        success: true,
+        user: userData,
+        currency: customization.currency
+      });
+    }
+
+       console.log("Cookies set");
+  
+      return res.status(200).json({
+        success: true,
+        user: userData,
+        
+      })
+
   } catch (error) {
     console.log(error.message);
 
@@ -154,7 +169,7 @@ export const refreshToken = async(req,res)=>{
         res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "none",
         maxAge: 15 * 60 * 1000,
         path: "/",
         });
@@ -254,6 +269,7 @@ export const updateCustomization = async (
       primaryColor,
       secondaryColor,
       motto,
+      currency
     } = req.body;
 
     // image from multer/cloudinary middleware
@@ -279,6 +295,7 @@ export const updateCustomization = async (
           secondaryColor:
             secondaryColor || "#ffffff",
           motto: motto || "",
+          currency,
           logo,
         });
     } else {
@@ -300,6 +317,10 @@ export const updateCustomization = async (
       if (logo) {
         customization.logo = logo;
       }
+      if (currency) {
+        customization.currency = currency;
+      }
+
 
       await customization.save();
     }
@@ -340,6 +361,7 @@ export const updateRestaurantDetails =
         businessName,
         phone,
         address,
+        currency
       } = req.body;
 
       // find organization belonging to user
@@ -435,6 +457,8 @@ export const getAllDetails = async (
       motto: customization?.motto || "",
 
       logo: customization?.logo || "",
+
+      currency: customization?.currency || ""
     });
   } catch (error) {
     console.log(

@@ -29,6 +29,10 @@ const customizationSchema = new mongoose.Schema(
       type: String,
       default: "#ffffff",
     },
+    currency:{
+      type:String,
+      default:"GHS"
+    }
   },
   {
     timestamps: true,
