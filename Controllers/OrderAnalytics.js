@@ -6,6 +6,7 @@ export const getOrderAnalytics = async (
     const restaurantId =
       req.user._id;
 
+      
     // all orders for this restaurant
     const orders =
       await orderModel.find({
