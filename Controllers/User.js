@@ -9,6 +9,7 @@ import { generateUniqueSlug } from "../Utils/GenerateSlug.js";
 dotenv.config()
 
 
+const sameSiteValue = process.env.NODE_ENV== "production"?"none":"lax"
 
 export const signUpRestaurant = async(req , res)=>{
     try{
@@ -32,11 +33,12 @@ export const signUpRestaurant = async(req , res)=>{
 
         await redis.set(`refreshtoken${newRestaurant._id}`, refreshToken, "EX", 7*24*60*60)
 
+
         res.cookie("accessToken",accessToken,{
             httpOnly:true,
             secure: process.env.NODE_ENV=="production",
             maxAge: 1*24*60*60*1000,
-            sameSite:"none",
+            sameSite: sameSiteValue,
             path:"/"
             
         })
@@ -44,7 +46,7 @@ export const signUpRestaurant = async(req , res)=>{
             httpOnly:true,
             secure: process.env.NODE_ENV== "production",
             maxAge: 7*24*60*60*1000,
-            sameSite:"none",
+            sameSite:sameSiteValue,
             path:"/"
             
         })
@@ -100,7 +102,7 @@ export const loginRestaurant = async (req, res) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: sameSiteValue,
       maxAge: 1*24*60*60 * 1000,
       path: "/",
     });
@@ -108,7 +110,7 @@ export const loginRestaurant = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: sameSiteValue,
       maxAge: 7 * 24 * 60 * 60* 1000,
       path: "/",
     });
@@ -169,7 +171,7 @@ export const refreshToken = async(req,res)=>{
         res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        sameSite: sameSiteValue,
         maxAge: 15 * 60 * 1000,
         path: "/",
         });
