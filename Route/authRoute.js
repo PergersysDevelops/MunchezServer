@@ -14,4 +14,4 @@ authRoute.put("/change-password",authenticateRestaurant,checkRole,changePassword
 authRoute.put("/update-customizations",authenticateRestaurant,checkRole,uploadMenuStorage.single("image"),updateCustomization)
 authRoute.put("/update-details",authenticateRestaurant,checkRole,updateRestaurantDetails)
 authRoute.get("/all-details",authenticateRestaurant,checkRole,getAllDetails)
-authRoute.get("/all-details/:id",authenticateRestaurant,checkRole,getAllPublicDetails)
+authRoute.get("/all-details/:id",getAllPublicDetails)
