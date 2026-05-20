@@ -22,8 +22,10 @@ const server = http.createServer(app);
 
 export const io = new Server(server, {
   cors: {
-    
-    origin: process.env.FRONTEND_BASE_URL,
+    origin: [
+      process.env.FRONTEND_BASE_URL,
+      process.env.FRONTEND_LOCALHOST_URL,
+    ],
     credentials: true,
   },
 });
@@ -31,11 +33,15 @@ export const io = new Server(server, {
 const port = process.env.PORT;
 
 app.use(express.json());
+
 app.use(cookieparser());
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_BASE_URL,
+    origin: [
+      process.env.FRONTEND_BASE_URL,
+      process.env.FRONTEND_LOCALHOST_URL,
+    ],
     credentials: true,
   })
 );
