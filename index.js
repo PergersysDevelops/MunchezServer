@@ -11,6 +11,9 @@ import { tableRouter } from "./Route/TableRoute.js";
 import { orderRoute } from "./Route/OrderRoute.js";
 import MenuRouter from "./Route/RestaurantMenuRoute.js";
 
+
+import { analyticsRouter } from "./Route/AnalyticsRoute.js";
+
 import cookieparser from "cookie-parser";
 import cors from "cors";
 
@@ -69,6 +72,7 @@ app.use("/api/v1", tableRouter);
 app.use("/api/v1", MenuRouter);
 app.use("/api/v1", paymentRoute);
 app.use("/api/v1", orderRoute);
+app.use("/api/v1", analyticsRouter);
 
 server.listen(port, () => {
   console.log(`Server running at ${port}`);

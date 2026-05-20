@@ -16,12 +16,14 @@ export const initializePayment = async (req, res) => {
 
     console.log(orderData)
 
+    const frontendBaseUrl = process.env.NODE_ENV == "production"? process.env.FRONTEND_BASE_URL:process.env.FRONTEND_LOCALHOST_URL
+
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
         email: "super.admin@pergersys.com",
         amount: amount, // convert to pesewas 
-        callback_url: `${process.env.FRONTEND_BASE_URL}/m/${orderData.restaurantOwnerId}/table/${orderData.tableNumber}/verify-payment`,
+        callback_url: `${frontendBaseUrl}/m/${orderData.restaurantOwnerId}/table/${orderData.tableNumber}/verify-payment`,
         metadata: orderData, // attach order info
       },
       {

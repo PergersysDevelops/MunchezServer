@@ -1,9 +1,10 @@
 import mongoose from "mongoose"
 
 const orderSchema = new mongoose.Schema({
-    restaurantId:{
-        type:String
-    },
+   restaurantId:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref:"restaurants"
+},
     table:{
         type:Number
     },
@@ -25,6 +26,11 @@ const orderSchema = new mongoose.Schema({
     },
     total:{
         type:String
+    },
+    orderStatus:{
+        type: String,
+        enum: ["pending","processing","ready"],
+        default:"pending"
     }
 },{
     timestamps:true
